@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from models.IpiPanModel import IpiPanModel
+from models.ipi_pan_model import IpiPanModel
 
 
 class TestIpiPanModel(TestCase):

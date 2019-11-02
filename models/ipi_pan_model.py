@@ -1,7 +1,6 @@
 import os
 import numpy as np
 
-from functools import partial
 from scipy.spatial import distance
 from settings import DATA_PATH
 
