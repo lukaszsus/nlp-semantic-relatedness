@@ -1,16 +1,23 @@
+"""
+Since 6.11.2019 we do not use gensim so this is deprecated.
+It is not deleted because of possibility of returning to this idea.
+"""
+
 import os
 import numpy as np
-import pickle
+import gensim
+from deprecated import deprecated
 from scipy.spatial import distance
+from settings import DATA_PATH
 from tqdm import tqdm
 
-from settings import DATA_PATH
-
-
-class IpiPanModel():
+@deprecated(reason="Class is not finished because it is hard to convert dict to gensim.")
+class IpiPanModelGensim():
     """
     DATA_PATH/models directory should contains saved models.
     Models are available to download on http://dsmodels.nlp.ipipan.waw.pl/.
+
+    In contrast to IpiPanModel, this class requires binary Word2Vec binary models.
 
     Naming convention from IPI-PAN docs:
         Nazwa pliku: corpus-type-stype-dim-arch-alg.txt.gz
@@ -26,18 +33,35 @@ class IpiPanModel():
         wytrenowany w stu iteracjach.
     """
     def __init__(self, file_name):
-        self.embeddings = None
+        self.model = None
         self.load_model(file_name)
 
     def load_model(self, file_name):
         file_extension = os.path.splitext(file_name)[1]
         if file_extension == '.txt':
-            self.load_from_raw_file(file_name)
+            self.load_model_from_raw_file(file_name)
         else:
-            self.load_from_binary(file_name)
+            self.load_model_from_binary(file_name)
 
-    def load_from_raw_file(self, file_name):
-        self.embeddings = dict()
+    def load_model_from_binary(self, file_name):
+        file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
+        if not os.path.isfile(file_path):
+            raise ValueError("File {} does not exists.".format(file_path))
+        self.model = gensim.models.KeyedVectors.load_word2vec_format(file_path, binary=True)
+
+    def load_model_from_raw_file(self, file_name):
+        self.load_raw_file(file_name)
+        # embeddings = self.filter_model_with_polimorf(embeddings)
+        print(len(self.word2vec_embeddings.keys()))
+        self.model = gensim.models.keyedvectors.Word2VecKeyedVectors(len(self.word2vec_embeddings.keys()))
+        self.model.vocab = self.word2vec_embeddings
+        vectors = np.array(self.word2vec_embeddings.values())
+        print(type(vectors))
+        print(vectors.shape)
+        self.model.vectors = vectors
+
+    def load_raw_file(self, file_name):
+        self.word2vec_embeddings = dict()
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
         if not os.path.isfile(file_path):
             raise ValueError("File {} does not exists.".format(file_path))
@@ -45,14 +69,26 @@ class IpiPanModel():
         for x in f:
             x = x.replace("\r\n", "\n").replace("\n", "")
             x = x.split(" ")
-            self.embeddings[x[0]] = np.array(x[1:], dtype=float)
+            if len(x) > 2:      # skip first line
+                self.word2vec_embeddings[x[0]] = np.array(x[1:], dtype=float)
 
-    def load_from_binary(self, file_name):
-        file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
-        if not os.path.isfile(file_path):
-            raise ValueError("File {} does not exists.".format(file_path))
-        with open(file_path, 'rb') as file:
-            self.embeddings = pickle.load(file)
+    def filter_model_with_polimorf(self):
+        vocabulary = self._get_vocabulary_from_polimorf()
+        new_word2vec_dictionary = dict()
+        print("Number of words in Word2Vec: {}".format(len(self.word2vec_embeddings.keys())))
+        for word, embedding in tqdm(self.word2vec_embeddings.items()):
+            if word in vocabulary:
+                new_word2vec_dictionary[word] = embedding
+        return new_word2vec_dictionary
+
+    def _get_vocabulary_from_polimorf(self):
+        vocabulary = list()
+        with open(os.path.join(DATA_PATH, "PoliMorf-0.6.7.tab"), 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                words = line.split("\t")
+                vocabulary.append(words[0])
+        return vocabulary
 
     def get(self, word):
         """
@@ -60,8 +96,9 @@ class IpiPanModel():
         :param word:
         :return: numpy.ndarray with word embedding
         """
-        ret_val = self.embeddings.get(word, None)
-        if ret_val is None:
+        try:
+            ret_val = self.model.get_vector(word)
+        except:
             raise ValueError("Word {} is not avalaible in model.".format(word))
         return ret_val
 
@@ -74,7 +111,7 @@ class IpiPanModel():
     def synonyms(self, word, top=10, dist_type='cosine'):
         dist_fun = self.__get_distance_function(dist_type)
         distances = {}
-        for neighbour in self.embeddings.keys():
+        for neighbour in self.model.vocab:
             distances[neighbour] = dist_fun(self.get(word), self.get(neighbour))
         sorted_dist = sorted(distances.items(), key=lambda kv: kv[1])
         closest = [sd[0] for sd in sorted_dist[:top]]
@@ -88,29 +125,9 @@ class IpiPanModel():
         elif dist_type == "cosine":
             return distance.cosine
 
-    def filter_model_with_polimorf(self):
-        vocabulary = self._get_vocabulary_from_polimorf()
-        new_word2vec_dictionary = dict()
-        print("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
-        for word, embedding in tqdm(self.embeddings.items()):
-            if word in vocabulary:
-                new_word2vec_dictionary[word] = embedding
-        return new_word2vec_dictionary
+    def save_model(self, file_name):
+        print(type(self.model.vocab))
+        print(self.model.vectors.shape)
+        file_path = os.path.join(DATA_PATH, file_name + ".bin")
+        self.model.save_word2vec_format(file_path, binary=True)
 
-    def _get_vocabulary_from_polimorf(self):
-        """
-        PoliMorf available: http://zil.ipipan.waw.pl/PoliMorf?action=AttachFile&do=get&target=PoliMorf-0.6.7.tab.gz
-        :return:
-        """
-        vocabulary = list()
-        with open(os.path.join(DATA_PATH, "PoliMorf-0.6.7.tab"), 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                words = line.split("\t")
-                vocabulary.append(words[0])
-        return vocabulary
-
-    def save(self, file_name):
-        file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))
-        with open(file_path, 'wb') as file:
-            pickle.dump(self.embeddings, file)

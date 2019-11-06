@@ -1,3 +1,5 @@
+import time
+import numpy as np
 from unittest import TestCase
 
 from models.ipi_pan_model import IpiPanModel
@@ -14,11 +16,16 @@ class TestIpiPanModel(TestCase):
 
     def test_semantic_relatedness(self):
         distance_euc = self.model.semantic_relatedness("piec", "piecyk", "euclidean")
-        distance_man = self.model.semantic_relatedness("piec", "piecyk", "manhattan")
         print(distance_euc)
-        print(distance_man)
         self.assertGreater(distance_euc, 0)
+
+        distance_man = self.model.semantic_relatedness("piec", "piecyk", "manhattan")
+        print(distance_man)
         self.assertGreater(distance_man, 0)
+
+        distance_cos = self.model.semantic_relatedness("piec", "piecyk", "euclidean")
+        print(distance_cos)
+        self.assertGreater(distance_cos, 0)
 
     def test_synonyms(self):
         synonyms1 = self.model.synonyms("krzesło")
@@ -38,3 +45,28 @@ class TestIpiPanModel(TestCase):
         self.assertTrue(type(synonyms1[0]) == str)
         self.assertTrue(type(synonyms2[0]) == str)
         self.assertTrue(type(synonyms3[0]) == str)
+
+    def test_binary_raw_loading_time_and_works_the_same(self):
+        raw_load_time = time.time()
+        model = IpiPanModel("wiki-forms-all-100-cbow-hs.txt")
+        raw_load_time = time.time() - raw_load_time
+        print("Loading raw took {}".format(raw_load_time))
+
+        start = time.time()
+        synonyms_raw = model.synonyms("piec")
+        print(synonyms_raw)
+        print("Synonyms took {}".format(time.time() - start))
+
+        bin_load_time = time.time()
+        model = IpiPanModel("wiki-forms-all-100-cbow-hs.bin")
+        bin_load_time = time.time() - bin_load_time
+        print("Loading binary took {}".format(bin_load_time))
+
+        start = time.time()
+        synonyms_bin = model.synonyms("piec")
+        print(synonyms_bin)
+        print("Synonyms took {}".format(time.time() - start))
+
+        self.assertGreater(raw_load_time, bin_load_time)
+        self.assertTrue(np.sum(np.array(synonyms_raw) == np.array(synonyms_bin))
+                        == len(synonyms_raw))
