@@ -33,8 +33,6 @@ if __name__ == '__main__':
     for rel_type in relations:
         print(rel_type)
 
-
-
     # word = "piec"
     # lch_threshold = 2.26
     # wn = plwn.load_default()
