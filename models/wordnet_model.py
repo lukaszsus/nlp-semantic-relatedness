@@ -32,9 +32,9 @@ class WordNetModel():
         It takes long time. Do it once, save model to file and next time load model binary.
 
         Graph based on wordnet has a structure:
-        - all synsets have central vertex
-        - all lexical units in synset are connected to central synset vertex
-        - central synset vertices are connected using relation types specified in relation_types
+        - all synsets have central vertex,
+        - all lexical units in synset are connected to central synset vertex,
+        - central synset vertices are connected using relation types specified in relation_types.
         :param is_polish: filter only polish words
         :param relation_types: synset relation types to filter
         :return:
@@ -52,32 +52,28 @@ class WordNetModel():
                 continue
             src_synset_id = sr_edge.source.id
             target_synset_id = sr_edge.target.id
-            # adding synsets central vertex
-            if src_synset_id not in self.synset_to_vertex_id.keys():
-                v_central = self.g.add_vertex()
-                self.synset_to_vertex_id[src_synset_id] = int(v_central)
-                # adding edges between lexical units and synset central vertex
-                for lexical_unit in sr_edge.source.lexical_units:
-                    if lexical_unit.lemma not in self.lemma_to_vertex_id.keys():
-                        v = self.g.add_vertex()
-                        self.lemma_to_vertex_id[lexical_unit.lemma] = int(v)
-                    else:
-                        v = self.g.vertex(self.lemma_to_vertex_id[lexical_unit.lemma])
-                    self.g.add_edge(v, v_central)
-            if target_synset_id not in self.synset_to_vertex_id.keys():
-                v_central = self.g.add_vertex()
-                self.synset_to_vertex_id[target_synset_id] = int(v_central)
-                # adding edges between lexical units and synset central vertex
-                for lexical_unit in sr_edge.target.lexical_units:
-                    if lexical_unit.lemma not in self.lemma_to_vertex_id.keys():
-                        v = self.g.add_vertex()
-                        self.lemma_to_vertex_id[lexical_unit.lemma] = int(v)
-                    else:
-                        v = self.g.vertex(self.lemma_to_vertex_id[lexical_unit.lemma])
-                    self.g.add_edge(v, v_central)
+            self._add_synset_vertices(sr_edge, src_synset_id)
+            self._add_synset_vertices(sr_edge, target_synset_id)
+
+            # add edge between synsets
             v1 = self.g.vertex(self.synset_to_vertex_id[src_synset_id])
             v2 = self.g.vertex(self.synset_to_vertex_id[target_synset_id])
             self.g.add_edge(v1, v2)
+
+    def _add_synset_vertices(self, sr_edge, synset_id):
+        if synset_id not in self.synset_to_vertex_id.keys():
+            # adding synsets central vertex
+            v_central = self.g.add_vertex()
+            self.synset_to_vertex_id[synset_id] = int(v_central)
+
+            # adding edges between lexical units and synset central vertex
+            for lexical_unit in sr_edge.source.lexical_units:
+                if lexical_unit.lemma not in self.lemma_to_vertex_id.keys():
+                    v = self.g.add_vertex()
+                    self.lemma_to_vertex_id[lexical_unit.lemma] = int(v)
+                else:
+                    v = self.g.vertex(self.lemma_to_vertex_id[lexical_unit.lemma])
+                self.g.add_edge(v, v_central)
 
     def save(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))
@@ -141,7 +137,6 @@ class WordNetModel():
         closest = [sd[0] for sd in sorted_dist[:top]]
         return closest
 
-
     def __get_distance_function(self, dist_type='LeacockChodorow'):
         """
         Measures explained in https://arxiv.org/pdf/1310.8059.pdf.
@@ -155,8 +150,8 @@ class WordNetModel():
 
     def _LeacockChodorow(self):
         """
-        TODO
-        Leacock and Chodorow similarity measure. I have assumed that taxonomy depth is equal to pseudo diameter.
+        Leacock and Chodorow similarity measure. I have assumed that taxonomy depth is equal to pseudo diameter
+        but it is not true.
         :param word1: 
         :param word2: 
         :return: 

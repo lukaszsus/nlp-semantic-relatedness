@@ -58,8 +58,8 @@ class TestWordNetModel(TestCase):
     def test_synonyms(self):
         """
         Best are options:
-        - filtering polish and all types of relations
-        - not filtering polish and hiperonim/hiponim relation type
+        - filtering polish and all types of relations (slowosiec-graph-polish)
+        - not filtering polish and hiperonim/hiponim relation type (slowosiec-graph-hiponim)
         :return:
         """
         wordnet = WordNetModel()
