@@ -12,3 +12,4 @@ if __name__ == '__main__':
     v2 = g.add_vertex()
     print(v2)
     g.add_edge(v1, v2)
+    print(g.vertex_index(v1))
