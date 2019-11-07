@@ -83,3 +83,43 @@ class TestWordNetModel(TestCase):
         self.assertTrue(type(synonyms1[0]) == str)
         self.assertTrue(type(synonyms2[0]) == str)
         self.assertTrue(type(synonyms3[0]) == str)
+
+    def test__WuPalmer(self):
+        wordnet = WordNetModel()
+        wordnet.load("slowosiec-graph-hiponim.bin")
+        dist = wordnet._WuPalmer()
+        print(dist("bastion", "zamek"))
+        print(dist("piec", "piekarnik"))
+        print(dist("król", "porzeczka"))
+        print(dist("król", "królowa"))
+        self.assertGreater(dist("piec", "piekarnik"), 0)
+        self.assertGreater(dist("król", "królowa"), dist("król", "porzeczka"))
+
+    def test_wu_palmer_synonyms(self):
+        """
+        Best are options:
+        - filtering polish and all types of relations (slowosiec-graph-polish)
+        - not filtering polish and hiperonim/hiponim relation type (slowosiec-graph-hiponim)
+        :return:
+        """
+        wordnet = WordNetModel()
+        # wordnet.load("slowosiec-graph-2019-11-07-t17-45.bin")
+        wordnet.load("slowosiec-graph-hiponim.bin")
+
+        synonyms1 = wordnet.synonyms("krzesło", dist_type="WuPalmer")
+        synonyms2 = wordnet.synonyms("piec", dist_type="WuPalmer")
+        synonyms3 = wordnet.synonyms("król", dist_type="WuPalmer")
+
+        print(synonyms1)
+        print(synonyms2)
+        print(synonyms3)
+
+        self.assertTrue(synonyms1 is not None)
+        self.assertTrue(synonyms2 is not None)
+        self.assertTrue(synonyms3 is not None)
+        self.assertTrue(type(synonyms1) == list)
+        self.assertTrue(type(synonyms2) == list)
+        self.assertTrue(type(synonyms3) == list)
+        self.assertTrue(type(synonyms1[0]) == str)
+        self.assertTrue(type(synonyms2[0]) == str)
+        self.assertTrue(type(synonyms3[0]) == str)

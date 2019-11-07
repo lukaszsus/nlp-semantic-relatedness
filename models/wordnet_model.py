@@ -145,7 +145,7 @@ class WordNetModel():
         """
         if dist_type == "LeacockChodorow":
             return self._LeacockChodorow()
-        elif dist_type == " WuPalmer":
+        elif dist_type == "WuPalmer":
             return self._WuPalmer()
 
     def _LeacockChodorow(self):
@@ -161,22 +161,54 @@ class WordNetModel():
         def distance(word1, word2):
             v1 = self.g.vertex(self.lemma_to_vertex_id.get(word1))
             v2 = self.g.vertex(self.lemma_to_vertex_id.get(word2))
-            # graph_tool.shortest_path(g, v1, v2) returns 2 element tuple:
+            # graph_tool.shortest_path_len(g, v1, v2) returns 2 element tuple:
             # list of vertices
             # list of edges
             # we count number of edges
-            shortest_path = len(list(graph_tool.shortest_path(self.g, v1, v2)[1]))
-            lc_dist = - np.log(shortest_path / (2 * self.depth))
+            shortest_path_len = len(list(graph_tool.shortest_path(self.g, v1, v2)[1]))
+            lc_dist = - np.log(shortest_path_len / (2 * self.depth))
             return lc_dist
         return distance
 
-    def _WuPalmer(self):
+    def _WuPalmer(self, simplified=True):
         """
-        TODO
+        It is not really Wu Palmer formula. In our implementation we took following simplifications:
+        depth(lcs(v1 ,v2)) is a longest shortest path from all vertices between v1 and v2
+        depath(v1) is longest shortest path from v1
+        depath(v2) is longest shortest path from v2
+        we assume that lcs is a vertex between v1 and v2 with shortest shortest path
+        or a vertex in the middle. It depends on simplified param.
         :return:
         """
         def distance(word1, word2):
-            pass
+            v1 = self.g.vertex(self.lemma_to_vertex_id.get(word1))
+            v2 = self.g.vertex(self.lemma_to_vertex_id.get(word2))
+            shortest_path = list(graph_tool.shortest_path(self.g, v1, v2))
+            depth_v1 = self._vertex_depth(v1)
+            depth_v2 = self._vertex_depth(v2)
+
+            # lsc = Least Common Subsumer; [0] index means next vertices of shortest path
+            lcs_candidates = shortest_path[0]
+            shortest_path_len = len(shortest_path[1])   # [1] for edges
+
+            # find lcs depth
+            if simplified:
+                lsc_depth = self._vertex_depth(lcs_candidates[int(len(lcs_candidates) / 2)])
+            else:
+                lsc_depth = 2147483647
+                for candidate in lcs_candidates[1:-1]:      # first and last are vertices v1 and v2
+                    depth = self._vertex_depth(candidate)
+                    if depth < lsc_depth:
+                        lsc_depth = depth
+
+            wu_plamer = 2 * lsc_depth / (depth_v1 + depth_v2)
+            return wu_plamer
 
         return distance
+
+    def _vertex_depth(self, vertex):
+        distances = graph_tool.shortest_distance(self.g, source=vertex).a
+        distances = list(filter(lambda x: x != 2147483647, distances))  # remove max_int
+        depth = max(distances)
+        return depth
 
