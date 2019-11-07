@@ -38,6 +38,7 @@ class IpiPanModel():
 
     def load_from_raw_file(self, file_name):
         self.embeddings = dict()
+        print(DATA_PATH)
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
         if not os.path.isfile(file_path):
             raise ValueError("File {} does not exists.".format(file_path))
@@ -108,7 +109,10 @@ class IpiPanModel():
             for line in lines:
                 words = line.split("\t")
                 vocabulary.append(words[0])
-        return vocabulary
+
+        print(len(set(vocabulary)))
+        print(len(vocabulary))
+        return set(vocabulary)
 
     def save(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))

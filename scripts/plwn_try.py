@@ -29,9 +29,9 @@ if __name__ == '__main__':
         print(rel_type)
     print(len(unique_relation_types))
 
-    print("\n\n==========================")
-    for rel_type in relations:
-        print(rel_type)
+    # print("\n\n==========================")
+    # for rel_type in relations:
+    #     print(rel_type)
 
 
 
