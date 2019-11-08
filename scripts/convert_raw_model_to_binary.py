@@ -1,21 +1,28 @@
 import time
+from user_settings import DATA_PATH
 from models.ipi_pan_model import IpiPanModel
-from data_loader import load_simlex_dataset
+import data_loader as data_loader
 
-def convert_raw_to_binary(filter = False):
+import os
+
+
+def convert_raw_to_binary(file_name, filter = False):
     """
     Converts Word2Vec model saved in txt file to binary and saves it as binary.
     :param filter: if model should be filtered with vocabulary from PoliMorf 0.6.7
     :return:
     """
-    file_name = "wiki-forms-all-100-cbow-hs"
     start = time.time()
-    model = IpiPanModel(file_name + ".txt")
+    model = IpiPanModel(file_name)
     print("Loading took {}".format(time.time() - start))
-    print(model.get("organizację"))
+
     if filter:
         start = time.time()
-        model.filter_model_with_polimorf()
+        polimorf_vocabulary = data_loader.get_vocabulary_from_polimorf()
+        simplex_vocabulary = data_loader.get_vocabulary_for_simlex()
+        print(simplex_vocabulary)
+        vocabulary = polimorf_vocabulary.union(simplex_vocabulary)
+        model.filter_model_with_polimorf(vocabulary)
         print("Filtering model took {}".format(time.time() - start))
         file_name = file_name + "-filtered"
 
@@ -25,6 +32,4 @@ def convert_raw_to_binary(filter = False):
 
 
 if __name__ == '__main__':
-    simlex_data = load_simlex_dataset()
-    print(simlex_data)
-    #convert_raw_to_binary(True)
+    convert_raw_to_binary("nkjp+wiki-forms-restricted-100-cbow-hs.txt", True)

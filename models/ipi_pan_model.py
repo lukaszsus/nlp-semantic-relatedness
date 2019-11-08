@@ -55,6 +55,9 @@ class IpiPanModel():
         with open(file_path, 'rb') as file:
             self.embeddings = pickle.load(file)
 
+    def contains(self, word):
+        return word in self.embeddings.keys()
+
     def get(self, word):
         """
         Return embedding for a word.
@@ -75,7 +78,7 @@ class IpiPanModel():
     def synonyms(self, word, top=10, dist_type='cosine'):
         dist_fun = self.__get_distance_function(dist_type)
         distances = {}
-        for neighbour in self.embeddings.keys():
+        for neighbour in tqdm(self.embeddings.keys()):
             distances[neighbour] = dist_fun(self.get(word), self.get(neighbour))
         sorted_dist = sorted(distances.items(), key=lambda kv: kv[1])
         closest = [sd[0] for sd in sorted_dist[:top]]
@@ -89,30 +92,13 @@ class IpiPanModel():
         elif dist_type == "cosine":
             return distance.cosine
 
-    def filter_model_with_polimorf(self):
-        vocabulary = self._get_vocabulary_from_polimorf()
+    def filter_model_with_polimorf(self, vocabulary):
         new_word2vec_dictionary = dict()
         print("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
         for word, embedding in tqdm(self.embeddings.items()):
             if word in vocabulary:
                 new_word2vec_dictionary[word] = embedding
         return new_word2vec_dictionary
-
-    def _get_vocabulary_from_polimorf(self):
-        """
-        PoliMorf available: http://zil.ipipan.waw.pl/PoliMorf?action=AttachFile&do=get&target=PoliMorf-0.6.7.tab.gz
-        :return:
-        """
-        vocabulary = list()
-        with open(os.path.join(DATA_PATH, "PoliMorf-0.6.7.tab"), 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                words = line.split("\t")
-                vocabulary.append(words[0])
-
-        print(len(set(vocabulary)))
-        print(len(vocabulary))
-        return set(vocabulary)
 
     def save(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))

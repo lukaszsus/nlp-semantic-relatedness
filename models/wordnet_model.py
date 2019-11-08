@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import plwn
 import graph_tool.all as graph_tool
+
 # install graph-tool instruction: https://git.skewed.de/count0/graph-tool/wikis/installation-instructions
 # I have installed it by adding two lines to /etc/apt/sources.list:
 # deb http://downloads.skewed.de/apt/bionic bionic main             (for Ubuntu Bionic!)
@@ -58,6 +59,7 @@ class WordNetModel():
             # add edge between synsets
             v1 = self.g.vertex(self.synset_to_vertex_id[src_synset_id])
             v2 = self.g.vertex(self.synset_to_vertex_id[target_synset_id])
+            print()
             self.g.add_edge(v1, v2)
 
     def _add_synset_vertices(self, sr_edge, synset_id):
