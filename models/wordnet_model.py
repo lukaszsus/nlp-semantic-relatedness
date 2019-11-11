@@ -46,6 +46,7 @@ class WordNetModel():
         id = 0
         self.g = graph_tool.Graph()
         synset_relation_edges = wn.synset_relation_edges()  # load all synsets relations
+
         for sr_edge in synset_relation_edges:
             if relation_types is not None and sr_edge.relation.name not in relation_types:
                 continue
@@ -59,8 +60,40 @@ class WordNetModel():
             # add edge between synsets
             v1 = self.g.vertex(self.synset_to_vertex_id[src_synset_id])
             v2 = self.g.vertex(self.synset_to_vertex_id[target_synset_id])
-            print()
             self.g.add_edge(v1, v2)
+
+        print("Graph created, connecting componenents")
+        self.connect_subgraphs_by_spanning_trees()
+
+    def connect_subgraphs_by_spanning_trees(self):
+        subgraphs = {}
+        labels = graph_tool.label_components(self.g)[0].a
+
+        for i in range(len(labels)):
+            label = labels[i]
+
+            if label in subgraphs:
+                subgraphs[label].append(self.g.vertex(i))
+            else:
+                subgraphs[label] = [self.g.vertex(i)]
+
+        vertices_idx_to_connect = []
+
+        for l, s in subgraphs.items():
+            subgraph = graph_tool.GraphView(self.g, vfilt=labels == l,
+                                            directed=True)
+            tree_edges = graph_tool.min_spanning_tree(subgraph)
+            tree = graph_tool.GraphView(subgraph,
+                                        efilt=tree_edges, directed=True)
+            sort = graph_tool.topological_sort(tree)
+            vertices_idx_to_connect.append(sort[0])
+
+        v_root = self.g.add_vertex()
+
+        for i in vertices_idx_to_connect:
+            self.g.add_edge(v_root, i)
+
+        labels = graph_tool.label_components(self.g)[0].a
 
     def _add_synset_vertices(self, sr_edge, synset_id):
         if synset_id not in self.synset_to_vertex_id.keys():
@@ -93,6 +126,9 @@ class WordNetModel():
             self.lemma_to_vertex_id = pickle.load(file)
             self.synset_to_vertex_id = pickle.load(file)
             self.g.set_directed(False)
+
+        # print(len(list(self.g.vertices())))
+        print(max(graph_tool.label_components(self.g)[0].a))
 
     def semantic_relatedness(self, word1, word2, dist_type='cosine'):
         dist_fun = self.__get_distance_function(dist_type)
@@ -132,14 +168,14 @@ class WordNetModel():
         # sorting with distance measure
         # this part is only a synthetic sugar since we use shortest as the only variable in searching for synonyms
         distances = {}
-        dist_fun = self.__get_distance_function(dist_type)
+        dist_fun = self.get_distance_function(dist_type)
         for neighbour in candidates:
             distances[neighbour] = dist_fun(word, neighbour)
         sorted_dist = sorted(distances.items(), key=lambda kv: kv[1])
         closest = [sd[0] for sd in sorted_dist[:top]]
         return closest
 
-    def __get_distance_function(self, dist_type='LeacockChodorow'):
+    def get_distance_function(self, dist_type='LeacockChodorow'):
         """
         Measures explained in https://arxiv.org/pdf/1310.8059.pdf.
         :param dist_type:
@@ -168,7 +204,7 @@ class WordNetModel():
             # list of edges
             # we count number of edges
             shortest_path_len = len(list(graph_tool.shortest_path(self.g, v1, v2)[1]))
-            lc_dist = - np.log(shortest_path_len / (2 * self.depth))
+            lc_dist = - np.log(shortest_path_len + 1 / (2 * (self.depth + 1)))
             return lc_dist
         return distance
 
