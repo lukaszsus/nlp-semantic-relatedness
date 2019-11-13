@@ -64,7 +64,7 @@ class IpiPanModel():
         :param word:
         :return: numpy.ndarray with word embedding
         """
-        ret_val = self.embeddings.get(word, None)
+        ret_val = self.embeddings.get(word.encode(encoding='UTF-8'), None)
         if ret_val is None:
             raise ValueError("Word {} is not avalaible in model.".format(word))
         return ret_val
@@ -97,6 +97,8 @@ class IpiPanModel():
         print("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
         for word, embedding in tqdm(self.embeddings.items()):
             if word in vocabulary:
+                if word == 'łódź':
+                    print(word)
                 new_word2vec_dictionary[word] = embedding
         return new_word2vec_dictionary
 

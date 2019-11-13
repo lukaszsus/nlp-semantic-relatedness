@@ -113,11 +113,14 @@ def main():
                     similarity_results[1, :],
                     similarity_results[2, :])
 
+                print(model_results)
+
                 model_results_df = pd.DataFrame(
                     data=[model_results], columns=results_columns)
                 results = pd.concat([results, model_results_df])
 
     print(results)
+    results.to_csv("../output/wordnet_results.csv")
 
 
 if __name__ == '__main__':

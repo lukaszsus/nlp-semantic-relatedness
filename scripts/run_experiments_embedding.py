@@ -53,7 +53,7 @@ def get_values_to_check(model, test_dataset):
     return values_to_check, len(missed_words), len(set(missed_words))
 
 
-def test_model(model, values_to_check, metric, similarity_function):
+def test_model(model, values_to_check, metric, distance_function):
     print("------")
 
     results = []
@@ -64,8 +64,8 @@ def test_model(model, values_to_check, metric, similarity_function):
         similarity = values[2]
         relatedness = values[3]
 
-        counted = model.semantic_relatedness(word1, word2,
-                                             dist_type=similarity_function)
+        counted = 1 - model.semantic_relatedness(word1, word2,
+                                             dist_type=distance_function)
 
         results.append([similarity, relatedness, counted])
 
@@ -73,7 +73,7 @@ def test_model(model, values_to_check, metric, similarity_function):
 
     model_result = {
         "metric": metric,
-        "similarity_func": reverted_similarity_functions[similarity_function],
+        "similarity_func": reverted_similarity_functions[distance_function],
         "similarity_cor": metrics[metric](results[0, :], results[2, :]),
         "relatedness_cor": metrics[metric](results[1, :], results[2, :]),
     }
@@ -101,7 +101,7 @@ def main():
                 model_results = test_model(model=model,
                                            values_to_check=values_to_check,
                                            metric=metric,
-                                           similarity_function=similarity_function)
+                                           distance_function=similarity_function)
 
                 model_results['model_name'] = model_name
                 model_results['missed_words'] = missed_words
@@ -112,6 +112,7 @@ def main():
                 results = pd.concat([results, model_results_df])
 
     print(results)
+    results.to_csv("../output/embeddings_results.csv")
 
 
 if __name__ == '__main__':
