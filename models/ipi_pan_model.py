@@ -5,6 +5,7 @@ from scipy.spatial import distance
 from tqdm import tqdm
 
 from settings import DATA_PATH
+import io
 
 
 class IpiPanModel():
@@ -42,11 +43,16 @@ class IpiPanModel():
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
         if not os.path.isfile(file_path):
             raise ValueError("File {} does not exists.".format(file_path))
-        f = open(file_path, "r")
-        for x in f:
-            x = x.replace("\r\n", "\n").replace("\n", "")
-            x = x.split(" ")
-            self.embeddings[x[0]] = np.array(x[1:], dtype=float)
+        with io.open(file_path, "r", encoding="utf8") as f:
+            for x in f:
+                x = x.replace("\r\n", "\n").replace("\n", "")
+                x = x.split(" ")
+                self.embeddings[x[0]] = np.array(x[1:], dtype=float)
+
+        self._handle_custom_values()
+
+    def _handle_custom_values(self):
+        self.embeddings['łódź'] = self.embeddings['Łódź']
 
     def load_from_binary(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
@@ -64,7 +70,7 @@ class IpiPanModel():
         :param word:
         :return: numpy.ndarray with word embedding
         """
-        ret_val = self.embeddings.get(word.encode(encoding='UTF-8'), None)
+        ret_val = self.embeddings.get(word, None)
         if ret_val is None:
             raise ValueError("Word {} is not avalaible in model.".format(word))
         return ret_val
@@ -97,10 +103,8 @@ class IpiPanModel():
         print("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
         for word, embedding in tqdm(self.embeddings.items()):
             if word in vocabulary:
-                if word == 'łódź':
-                    print(word)
                 new_word2vec_dictionary[word] = embedding
-        return new_word2vec_dictionary
+        self.embeddings = new_word2vec_dictionary
 
     def save(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))

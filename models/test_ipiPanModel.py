@@ -8,7 +8,7 @@ from models.ipi_pan_model import IpiPanModel
 class TestIpiPanModel(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestIpiPanModel, self).__init__(*args, **kwargs)
-        self.model = IpiPanModel("wiki-forms-all-100-cbow-hs.txt")
+        self.model = IpiPanModel("nkjp+wiki-forms-restricted-100-cbow-hs.txt")
 
     def test_get(self):
         embedding = self.model.get("krzesło")
@@ -45,6 +45,11 @@ class TestIpiPanModel(TestCase):
         self.assertTrue(type(synonyms1[0]) == str)
         self.assertTrue(type(synonyms2[0]) == str)
         self.assertTrue(type(synonyms3[0]) == str)
+
+    def test_ipimodel(self):
+        print(self.model.contains("łódź"))
+        print(self.model.contains("Łódźstock"))
+        print(self.model.contains("Łódź"))
 
     def test_binary_raw_loading_time_and_works_the_same(self):
         raw_load_time = time.time()

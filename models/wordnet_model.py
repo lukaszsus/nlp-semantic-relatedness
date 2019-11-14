@@ -26,9 +26,10 @@ class WordNetModel():
         self.g = None
         self.lemma_to_vertex_id = None
         self.synset_to_vertex_id = None
+
         # self.max_depth = None   # used for Leacock and Chodorow measure
 
-    def create_graph(self, is_polish=True, relation_types=["hiponimia", "hiperonimia"]):
+    def create_graph(self, is_polish=True, relation_types=None):
         """
         It takes long time. Do it once, save model to file and next time load model binary.
 
@@ -40,11 +41,15 @@ class WordNetModel():
         :param relation_types: synset relation types to filter
         :return:
         """
+        if relation_types is None:
+            relation_types = ["hiperonimia"]
+
         wn = plwn.load_default()
         self.lemma_to_vertex_id = dict()
         self.synset_to_vertex_id = dict()
+
         id = 0
-        self.g = graph_tool.Graph()
+        self.g = graph_tool.Graph(directed=False)
         synset_relation_edges = wn.synset_relation_edges()  # load all synsets relations
 
         for sr_edge in synset_relation_edges:
@@ -54,8 +59,9 @@ class WordNetModel():
                 continue
             src_synset_id = sr_edge.source.id
             target_synset_id = sr_edge.target.id
-            self._add_synset_vertices(sr_edge, src_synset_id)
-            self._add_synset_vertices(sr_edge, target_synset_id)
+
+            self._add_synset_vertices(sr_edge.source, src_synset_id)
+            self._add_synset_vertices(sr_edge.target, target_synset_id)
 
             # add edge between synsets
             v1 = self.g.vertex(self.synset_to_vertex_id[src_synset_id])
@@ -64,6 +70,7 @@ class WordNetModel():
 
         print("Graph created, connecting componenents")
         self.connect_subgraphs_by_spanning_trees()
+        self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
     def connect_subgraphs_by_spanning_trees(self):
         subgraphs = {}
@@ -79,7 +86,9 @@ class WordNetModel():
 
         vertices_idx_to_connect = []
 
+        print(len(subgraphs.keys()))
         for l, s in subgraphs.items():
+            print(l)
             subgraph = graph_tool.GraphView(self.g, vfilt=labels == l,
                                             directed=True)
             tree_edges = graph_tool.min_spanning_tree(subgraph)
@@ -93,16 +102,15 @@ class WordNetModel():
         for i in vertices_idx_to_connect:
             self.g.add_edge(v_root, i)
 
-        labels = graph_tool.label_components(self.g)[0].a
-
-    def _add_synset_vertices(self, sr_edge, synset_id):
+    def _add_synset_vertices(self, synset, synset_id):
         if synset_id not in self.synset_to_vertex_id.keys():
             # adding synsets central vertex
             v_central = self.g.add_vertex()
             self.synset_to_vertex_id[synset_id] = int(v_central)
 
+
             # adding edges between lexical units and synset central vertex
-            for lexical_unit in sr_edge.source.lexical_units:
+            for lexical_unit in synset.lexical_units:
                 if lexical_unit.lemma not in self.lemma_to_vertex_id.keys():
                     v = self.g.add_vertex()
                     self.lemma_to_vertex_id[lexical_unit.lemma] = int(v)
@@ -129,6 +137,7 @@ class WordNetModel():
 
         # print(len(list(self.g.vertices())))
         print(max(graph_tool.label_components(self.g)[0].a))
+        self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
     def semantic_relatedness(self, word1, word2, dist_type='cosine'):
         dist_fun = self.__get_distance_function(dist_type)
@@ -194,7 +203,6 @@ class WordNetModel():
         :param word2: 
         :return: 
         """
-        self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
         def distance(word1, word2):
             v1 = self.g.vertex(self.lemma_to_vertex_id.get(word1))
@@ -204,7 +212,7 @@ class WordNetModel():
             # list of edges
             # we count number of edges
             shortest_path_len = len(list(graph_tool.shortest_path(self.g, v1, v2)[1]))
-            lc_dist = - np.log(shortest_path_len + 1 / (2 * (self.depth + 1)))
+            lc_dist = - np.log(shortest_path_len / (2 * (self.depth)))
             return lc_dist
         return distance
 
@@ -241,7 +249,6 @@ class WordNetModel():
 
             wu_plamer = 2 * lsc_depth / (depth_v1 + depth_v2)
             return wu_plamer
-
         return distance
 
     def _vertex_depth(self, vertex):

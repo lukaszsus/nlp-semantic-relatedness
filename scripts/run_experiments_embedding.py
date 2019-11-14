@@ -1,15 +1,18 @@
 import data_loader as data_loader
 from models.ipi_pan_model import IpiPanModel
+from models.fast_text_gensim import FastTextGensim
+from settings import OUTPUT_PATH
 import numpy as np
 from scipy.stats import spearmanr, pearsonr
 import pandas as pd
 
 results_columns = ['metric', 'similarity_func', 'similarity_cor',
-                   'relatedness_cor', 'model_name', 'missed_words',
+                   'relatedness_cor', 'model_name', 'missed_words_array', 'missed_words',
                    'unique_missed_words']
 
 models = {
-    "nkjp+wiki": "nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered.bin"
+    "w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered": "nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered.bin",
+    "fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered": "kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered.bin"
 }
 
 reverted_models = {value: key for key, value in models.items()}
@@ -49,14 +52,14 @@ def get_values_to_check(model, test_dataset):
             elif not contains_word_2:
                 missed_words.append(word2)
 
-    print(missed_words)
-    return values_to_check, len(missed_words), len(set(missed_words))
+    return values_to_check, set(missed_words), len(missed_words), len(set(missed_words))
 
 
-def test_model(model, values_to_check, metric, distance_function):
+def test_model(model, values_to_check, distance_function):
     print("------")
 
     results = []
+    results_to_save = []
 
     for values in values_to_check:
         word1 = values[0]
@@ -64,21 +67,16 @@ def test_model(model, values_to_check, metric, distance_function):
         similarity = values[2]
         relatedness = values[3]
 
-        counted = 1 - model.semantic_relatedness(word1, word2,
+        counted = 1.0 / model.semantic_relatedness(word1, word2,
                                              dist_type=distance_function)
 
         results.append([similarity, relatedness, counted])
+        results_to_save.append([word1, word2, similarity, relatedness, counted])
 
     results = np.array(results).astype("float32").transpose()
+    results_to_save = pd.DataFrame(data=results_to_save, columns=["word1", "word2", 'similarity', "relatedness", "counted_similarity"])
 
-    model_result = {
-        "metric": metric,
-        "similarity_func": reverted_similarity_functions[distance_function],
-        "similarity_cor": metrics[metric](results[0, :], results[2, :]),
-        "relatedness_cor": metrics[metric](results[1, :], results[2, :]),
-    }
-
-    return model_result
+    return results, results_to_save
 
 
 def main():
@@ -88,31 +86,43 @@ def main():
     results = pd.DataFrame(columns=results_columns)
 
     for model_name in models.keys():
-        model = IpiPanModel(models[model_name])
+        if model_name.startswith("fasttext"):
+            model = FastTextGensim(models[model_name])
+        elif model_name.startswith("w2v"):
+            model = IpiPanModel(models[model_name])
+        else:
+            continue
 
-        values_to_check, missed_words, unique_missed_words = get_values_to_check(
+        values_to_check, missed_words_array, missed_words, unique_missed_words = get_values_to_check(
             model, test_dataset)
 
         for similarity_function in similarity_functions.keys():
+            run_results, run_results_pd = test_model(model=model,
+                                                    values_to_check=values_to_check,
+                                                    distance_function=similarity_function)
+
+            run_results_pd.to_csv(f'{OUTPUT_PATH}/counted_results/{model_name}-{similarity_function}')
+
             for metric in metrics:
-                print(
-                    f"Testing {model_name} : {similarity_function} : {metric}")
-
-                model_results = test_model(model=model,
-                                           values_to_check=values_to_check,
-                                           metric=metric,
-                                           distance_function=similarity_function)
-
-                model_results['model_name'] = model_name
-                model_results['missed_words'] = missed_words
-                model_results['unique_missed_words'] = unique_missed_words
+                model_result = {
+                    "metric": metric,
+                    "similarity_func": reverted_similarity_functions[similarity_function],
+                    "similarity_cor": metrics[metric](run_results[0, :], run_results[2, :]),
+                    "relatedness_cor": metrics[metric](run_results[1, :], run_results[2, :]),
+                    "model_name": model_name,
+                    "missed_words_array": missed_words_array,
+                    "missed_words": missed_words,
+                    "unique_missed_words": unique_missed_words,
+                }
 
                 model_results_df = pd.DataFrame(
-                    data=[model_results], columns=results_columns)
+                    data=[model_result], columns=results_columns)
                 results = pd.concat([results, model_results_df])
 
+    results = results.reset_index()
+    results = results.drop(columns=["index"])
     print(results)
-    results.to_csv("../output/embeddings_results.csv")
+    results.to_csv(f"{OUTPUT_PATH}/embeddings_results.csv")
 
 
 if __name__ == '__main__':

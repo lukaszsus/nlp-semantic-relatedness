@@ -4,6 +4,8 @@ import numpy as np
 from scipy.stats import spearmanr, pearsonr
 import pandas as pd
 import os
+from settings import OUTPUT_PATH
+from tqdm import tqdm
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -12,7 +14,7 @@ results_columns = ['metric', 'similarity_func', 'similarity_cor',
                    'unique_missed_words']
 
 models = {
-    "slowosiec-graph-hiponim": "slowosiec-graph-hiponim-connected.bin"
+    "slowosiec-graph-hiperonim-connected-by-top-sort": "slowosiec-graph-hiperonim-connected-by-top-sort.bin"
 }
 
 reverted_models = {value: key for key, value in models.items()}
@@ -26,7 +28,7 @@ reverted_metrics = {value: key for key, value in metrics.items()}
 
 similarity_functions = {
     "LeacockChodorow": "LeacockChodorow",
-    # "WuPalmer": "WuPalmer"
+    "WuPalmer": "WuPalmer"
 }
 
 reverted_similarity_functions = {value: key for key, value in
@@ -52,15 +54,16 @@ def get_values_to_check(model, test_dataset):
                 missed_words.append(word2)
 
     print(missed_words)
-    return values_to_check, len(missed_words), len(set(missed_words))
+    return values_to_check, set(missed_words), len(missed_words), len(set(missed_words))
 
 
 def test_model(model, values_to_check, similarity_function):
     print("------")
 
     results = []
+    results_to_save = []
 
-    for values in values_to_check:
+    for values in tqdm(values_to_check):
         word1 = values[0]
         word2 = values[1]
         similarity = values[2]
@@ -68,10 +71,12 @@ def test_model(model, values_to_check, similarity_function):
         dist = model.get_distance_function(dist_type=similarity_function)
         counted = dist(word1, word2)
         results.append([similarity, relatedness, counted])
+        results_to_save.append([word1, word2, similarity, relatedness, counted])
 
     results = np.array(results).astype("float32").transpose()
+    results_to_save = pd.DataFrame(data=results_to_save, columns=["word1", "word2", 'similarity', "relatedness", "counted_similarity"])
 
-    return results
+    return results, results_to_save
 
 
 def main():
@@ -85,42 +90,36 @@ def main():
         # wordnet.load("slowosiec-graph-2019-11-07-t17-45.bin")
         model.load(f"{model_name}.bin")
 
-        values_to_check, missed_words, unique_missed_words = get_values_to_check(
+        values_to_check, missed_words_array,  missed_words, unique_missed_words = get_values_to_check(
             model, test_dataset)
 
         for similarity_function in similarity_functions.keys():
-            similarity_results = test_model(model=model,
-                                            values_to_check=values_to_check,
-                                            similarity_function=similarity_function)
-            model_results = {
+            run_results, run_results_pd = test_model(model=model,
+                                                     values_to_check=values_to_check,
+                                                     similarity_function=similarity_function)
 
-            }
+            run_results_pd.to_csv(f'{OUTPUT_PATH}/counted_results/{model_name}-{similarity_function}')
 
             for metric in metrics:
-                print(
-                    f"Testing {model_name} : {similarity_function} : {metric}")
-
-                model_results["similarity_func"] = \
-                reverted_similarity_functions[similarity_function]
-                model_results['model_name'] = model_name
-                model_results['missed_words'] = missed_words
-                model_results['unique_missed_words'] = unique_missed_words
-                model_results["metric"] = metric
-                model_results["similarity_cor"] = metrics[metric](
-                    similarity_results[0, :],
-                    similarity_results[2, :])
-                model_results["relatedness_cor"] = metrics[metric](
-                    similarity_results[1, :],
-                    similarity_results[2, :])
-
-                print(model_results)
+                model_result = {
+                    "metric": metric,
+                    "similarity_func": reverted_similarity_functions[similarity_function],
+                    "similarity_cor": metrics[metric](run_results[0, :], run_results[2, :]),
+                    "relatedness_cor": metrics[metric](run_results[1, :], run_results[2, :]),
+                    "model_name": model_name,
+                    "missed_words_array": missed_words_array,
+                    "missed_words": missed_words,
+                    "unique_missed_words": unique_missed_words,
+                }
 
                 model_results_df = pd.DataFrame(
-                    data=[model_results], columns=results_columns)
+                    data=[model_result], columns=results_columns)
                 results = pd.concat([results, model_results_df])
 
+    results = results.reset_index()
+    results = results.drop(columns=["index"])
     print(results)
-    results.to_csv("../output/wordnet_results.csv")
+    results.to_csv(f"{OUTPUT_PATH}/embeddings_results.csv")
 
 
 if __name__ == '__main__':
