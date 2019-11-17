@@ -1,10 +1,28 @@
 ,metric,similarity_func,similarity_cor,relatedness_cor,model_name,missed_words_array,missed_words,unique_missed_words
-0,scikit.pearsonr,manhattan,0.2329903072758277,0.2802168617816313,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+0,scikit.pearsonr,manhattan,0.2329903072758277,0.28021686178163135,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
 1,scikit.spearmanr,manhattan,0.2428459984047556,0.2623672568395526,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
-2,scikit.pearsonr,cosine,0.23919897764806264,0.21913478419607021,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+2,scikit.pearsonr,cosine,0.2391989776480626,0.21913478419607021,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
 3,scikit.spearmanr,cosine,0.26865741543185295,0.18660839148820427,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
-4,scikit.pearsonr,euclidean,0.2350990266378031,0.2832363333391755,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+4,scikit.pearsonr,euclidean,0.23509902663780313,0.2832363333391754,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
 5,scikit.spearmanr,euclidean,0.24326519652562906,0.2635832474872666,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+6,scikit.pearsonr,manhattan,0.21928402160239063,0.31038251480508894,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+7,scikit.spearmanr,manhattan,0.3129910776733352,0.32161623817018303,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+8,scikit.pearsonr,cosine,0.046387049364419085,0.14896357776371683,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+9,scikit.spearmanr,cosine,0.3632115057707978,0.42343775594292343,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+10,scikit.pearsonr,euclidean,0.220359502986258,0.3091353875486621,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+11,scikit.spearmanr,euclidean,0.3142008034742846,0.3208971129778424,w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered,set(),0,0
+12,scikit.pearsonr,manhattan,0.2589525508453038,0.30748881072909034,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+13,scikit.spearmanr,manhattan,0.2633876409071069,0.29002366260543627,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+14,scikit.pearsonr,cosine,0.288697480255786,0.26152953462883455,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+15,scikit.spearmanr,cosine,0.3185586213022659,0.23696652585456576,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+16,scikit.pearsonr,euclidean,0.26206939900766657,0.31104543111431227,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+17,scikit.spearmanr,euclidean,0.267517957954082,0.2933464586151231,w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered,set(),0,0
+18,scikit.pearsonr,manhattan,0.22136748044130383,0.2944372389234758,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
+19,scikit.spearmanr,manhattan,0.3104391207796765,0.2972868119992093,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
+20,scikit.pearsonr,cosine,0.08248213511959449,0.1933053992740815,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
+21,scikit.spearmanr,cosine,0.41191046247667307,0.4764401087957862,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
+22,scikit.pearsonr,euclidean,0.2261752163252458,0.29768867711550373,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
+23,scikit.spearmanr,euclidean,0.3112198504483259,0.29923040336155765,w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered,set(),0,0
 6,scikit.pearsonr,manhattan,0.3046820103525722,0.2674516656322393,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
 7,scikit.spearmanr,manhattan,0.3313065813433302,0.2500569374510152,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
 8,scikit.pearsonr,cosine,0.33024190849979507,0.30910883986304577,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9

@@ -1,0 +1,13 @@
+,metric,similarity_func,similarity_cor,relatedness_cor,model_name,missed_words_array,missed_words,unique_missed_words
+0,scikit.pearsonr,manhattan,0.2329903072758277,0.2802168617816313,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+1,scikit.spearmanr,manhattan,0.2428459984047556,0.2623672568395526,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+2,scikit.pearsonr,cosine,0.23919897764806264,0.21913478419607021,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+3,scikit.spearmanr,cosine,0.26865741543185295,0.18660839148820427,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+4,scikit.pearsonr,euclidean,0.2350990266378031,0.2832363333391755,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+5,scikit.spearmanr,euclidean,0.24326519652562906,0.2635832474872666,w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered,set(),0,0
+6,scikit.pearsonr,manhattan,0.3046820103525722,0.2674516656322393,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
+7,scikit.spearmanr,manhattan,0.3313065813433302,0.2500569374510152,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
+8,scikit.pearsonr,cosine,0.33024190849979507,0.30910883986304577,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
+9,scikit.spearmanr,cosine,0.40104556656260343,0.34623720390339247,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
+10,scikit.pearsonr,euclidean,0.30569166057084857,0.2689320144679528,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9
+11,scikit.spearmanr,euclidean,0.3298183628778081,0.25100181690704215,fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered,"{'mężczyźni', 'meble', 'Biblia', 'pieniądze', 'nasiona', 'ubrania', 'obładowany', 'ludzie', 'przestraszony'}",15,9

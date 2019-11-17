@@ -27,8 +27,8 @@ metrics = {
 reverted_metrics = {value: key for key, value in metrics.items()}
 
 similarity_functions = {
-    "LeacockChodorow": "LeacockChodorow",
-    "WuPalmer": "WuPalmer"
+    "LeacockChodorow": "LeacockChodorow"
+    ,"WuPalmer": "WuPalmer"
 }
 
 reverted_similarity_functions = {value: key for key, value in
@@ -119,8 +119,7 @@ def main():
     results = results.reset_index()
     results = results.drop(columns=["index"])
     print(results)
-    results.to_csv(f"{OUTPUT_PATH}/embeddings_results.csv")
-
+    results.to_csv(f"{OUTPUT_PATH}/wordnet_results.csv")
 
 if __name__ == '__main__':
     main()

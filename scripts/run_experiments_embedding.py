@@ -11,8 +11,11 @@ results_columns = ['metric', 'similarity_func', 'similarity_cor',
                    'unique_missed_words']
 
 models = {
-    "w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered": "nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered.bin",
-    "fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered": "kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered.bin"
+    "w2v-nkjp+wiki-forms-restricted-100-cbow-hs.txt-filtered": "nkjp+wiki-forms-restricted-100-cbow-hs-filtered.bin",
+    "w2v-nkjp+wiki-forms-restricted-100-skipg-hs.txt-filtered": "nkjp+wiki-forms-restricted-100-skipg-hs-filtered.bin",
+    "w2v-nkjp+wiki-forms-restricted-300-cbow-hs.txt-filtered": "nkjp+wiki-forms-restricted-300-cbow-hs-filtered.bin",
+    "w2v-nkjp+wiki-forms-restricted-300-skipg-hs.txt-filtered": "nkjp+wiki-forms-restricted-300-skipg-hs-filtered.bin"
+    # "fasttext-kgr10.plain.lemma.lower.cbow.dim100.neg10.bin-filtered": "kgr10.plain.lemma.lower.cbow.dim100.neg10-filtered.bin"
 }
 
 reverted_models = {value: key for key, value in models.items()}
@@ -118,6 +121,8 @@ def main():
                 model_results_df = pd.DataFrame(
                     data=[model_result], columns=results_columns)
                 results = pd.concat([results, model_results_df])
+
+        del model
 
     results = results.reset_index()
     results = results.drop(columns=["index"])

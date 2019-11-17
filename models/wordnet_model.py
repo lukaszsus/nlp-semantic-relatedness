@@ -26,6 +26,7 @@ class WordNetModel():
         self.g = None
         self.lemma_to_vertex_id = None
         self.synset_to_vertex_id = None
+        self.v_root = None
 
         # self.max_depth = None   # used for Leacock and Chodorow measure
 
@@ -70,7 +71,8 @@ class WordNetModel():
 
         print("Graph created, connecting componenents")
         self.connect_subgraphs_by_spanning_trees()
-        self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
+        self._count_root_depth()
+        # self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
     def connect_subgraphs_by_spanning_trees(self):
         subgraphs = {}
@@ -88,7 +90,7 @@ class WordNetModel():
 
         print(len(subgraphs.keys()))
         for l, s in subgraphs.items():
-            print(l)
+            # print(l)
             subgraph = graph_tool.GraphView(self.g, vfilt=labels == l,
                                             directed=True)
             tree_edges = graph_tool.min_spanning_tree(subgraph)
@@ -97,10 +99,10 @@ class WordNetModel():
             sort = graph_tool.topological_sort(tree)
             vertices_idx_to_connect.append(sort[0])
 
-        v_root = self.g.add_vertex()
+        self.v_root = self.g.add_vertex()
 
         for i in vertices_idx_to_connect:
-            self.g.add_edge(v_root, i)
+            self.g.add_edge(self.v_root, i)
 
     def _add_synset_vertices(self, synset, synset_id):
         if synset_id not in self.synset_to_vertex_id.keys():
@@ -124,6 +126,7 @@ class WordNetModel():
             pickle.dump(self.g, file)
             pickle.dump(self.lemma_to_vertex_id, file)
             pickle.dump(self.synset_to_vertex_id, file)
+            pickle.dump(int(self.v_root), file)     # save index of root
 
     def load(self, file_name):
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name))
@@ -133,15 +136,14 @@ class WordNetModel():
             self.g = pickle.load(file)
             self.lemma_to_vertex_id = pickle.load(file)
             self.synset_to_vertex_id = pickle.load(file)
+            v_root_index = pickle.load(file)
+            self.v_root = self.g.vertex(v_root_index)
             self.g.set_directed(False)
 
         # print(len(list(self.g.vertices())))
         print(max(graph_tool.label_components(self.g)[0].a))
-        self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
-
-    def semantic_relatedness(self, word1, word2, dist_type='cosine'):
-        dist_fun = self.__get_distance_function(dist_type)
-        return dist_fun(word1, word2)
+        self._count_root_depth()
+        # self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
     def synonyms(self, word, top=10, dist_type='LeacockChodorow', threshold=100):
         """
@@ -212,11 +214,11 @@ class WordNetModel():
             # list of edges
             # we count number of edges
             shortest_path_len = len(list(graph_tool.shortest_path(self.g, v1, v2)[1]))
-            lc_dist = - np.log(shortest_path_len / (2 * (self.depth)))
+            lc_dist = float(max(0, - np.log(shortest_path_len / (2 * (self.depth)))))
             return lc_dist
         return distance
 
-    def _WuPalmer(self, simplified=True):
+    def _WuPalmer(self, simplified=False):
         """
         It is not really Wu Palmer formula. In our implementation we took following simplifications:
         depth(lcs(v1 ,v2)) is a longest shortest path from all vertices between v1 and v2
@@ -252,8 +254,15 @@ class WordNetModel():
         return distance
 
     def _vertex_depth(self, vertex):
-        distances = graph_tool.shortest_distance(self.g, source=vertex).a
-        distances = list(filter(lambda x: x != 2147483647, distances))  # remove max_int
-        depth = max(distances)
+        # distances = graph_tool.shortest_distance(self.g, source=vertex).a
+        # distances = list(filter(lambda x: x != 2147483647, distances))  # remove max_int
+        # depth = max(distances)
+        depth = len(list(graph_tool.shortest_path(self.g, self.v_root, vertex)[1]))
         return depth
 
+    def _count_root_depth(self):
+        # self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
+        shortest_path = graph_tool.shortest_distance(self.g, source=self.v_root)
+        distances = shortest_path.a
+        self.depth = np.mean(distances)
+        return self.depth

@@ -16,6 +16,8 @@ def convert_raw_to_binary(file_name, filter = False):
     model = IpiPanModel(file_name)
     print("Loading took {}".format(time.time() - start))
 
+    base_name, ext = os.path.splitext(file_name)
+
     if filter:
         start = time.time()
         polimorf_vocabulary = data_loader.get_vocabulary_from_polimorf()
@@ -24,12 +26,16 @@ def convert_raw_to_binary(file_name, filter = False):
         vocabulary = polimorf_vocabulary.union(simplex_vocabulary)
         model.filter_model_with_polimorf(vocabulary)
         print("Filtering model took {}".format(time.time() - start))
-        file_name = file_name + "-filtered"
+        base_name = base_name + "-filtered"
 
     start = time.time()
-    model.save(file_name)
+    model.save(base_name)
     print("Saving model took {}".format(time.time() - start))
+    del model
 
 
 if __name__ == '__main__':
-    convert_raw_to_binary("nkjp+wiki-forms-restricted-100-cbow-hs.txt", True)
+    # convert_raw_to_binary("nkjp+wiki-forms-restricted-100-cbow-hs.txt", True)
+    # convert_raw_to_binary("nkjp+wiki-forms-restricted-100-skipg-hs.txt", True)
+    convert_raw_to_binary("nkjp+wiki-forms-restricted-300-cbow-hs.txt", True)
+    # convert_raw_to_binary("nkjp+wiki-forms-restricted-300-skipg-hs.txt", True)

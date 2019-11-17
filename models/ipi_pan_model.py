@@ -100,7 +100,7 @@ class IpiPanModel():
 
     def filter_model_with_polimorf(self, vocabulary):
         new_word2vec_dictionary = dict()
-        print("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
+        ("Number of words in Word2Vec: {}".format(len(self.embeddings.keys())))
         for word, embedding in tqdm(self.embeddings.items()):
             if word in vocabulary:
                 new_word2vec_dictionary[word] = embedding

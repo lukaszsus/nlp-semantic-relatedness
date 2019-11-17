@@ -22,8 +22,7 @@ class TestWordNetModel(TestCase):
         """
         wordnet = WordNetModel()
         wordnet.create_graph(is_polish=False)
-        # file_name = "slowosiec-graph-{}".format(datetime.now().strftime("%Y-%m-%d-t%H-%M"))
-        file_name = "slowosiec-graph-hiponim"
+        file_name = "slowosiec-graph-hiperonim-connected-by-top-sort"
         wordnet.save(file_name)
         file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))
         self.assertTrue(os.path.isfile(file_path))
@@ -36,22 +35,11 @@ class TestWordNetModel(TestCase):
         self.assertGreater(n_vertices, 0)
         self.assertGreater(n_edges, 0)
 
-    # def test__count_max_depth(self):
-    #     wordnet = WordNetModel()
-    #     wordnet.load("slowosiec-graph-2019-11-06-t22-14.bin")
-    #     wordnet._count_max_depth()
-    #     print(wordnet.max_depth)
-    #     self.assertGreater(wordnet.max_depth, 0)
-
     def test__LeacockChodorow(self):
         wordnet = WordNetModel()
-        # wordnet.load("slowosiec-graph-2019-11-07-t17-45.bin")
         wordnet.load("slowosiec-graph-hiperonim-connected-by-top-sort.bin")
         dist = wordnet._LeacockChodorow()
         print(dist("łatwy", "męczący"))
-        #
-        # self.assertGreater(dist("piec", "piekarnik"), 0)
-        # self.assertGreater(dist("król", "królowa"), dist("król", "porzeczka"))
 
     def test_synonyms(self):
         """
@@ -61,7 +49,6 @@ class TestWordNetModel(TestCase):
         :return:
         """
         wordnet = WordNetModel()
-        # wordnet.load("slowosiec-graph-2019-11-07-t17-45.bin")
         wordnet.load("slowosiec-graph-hiperonim-connected-by-top-sort.bin")
 
         synonyms1 = wordnet.synonyms("krzesło")
@@ -87,9 +74,6 @@ class TestWordNetModel(TestCase):
         wordnet.load("slowosiec-graph-hiperonim-connected-by-top-sort.bin")
         dist = wordnet._WuPalmer()
         print(dist("łatwy", "męczący"))
-        #
-        # self.assertGreater(dist("piec", "piekarnik"), 0)
-        # self.assertGreater(dist("król", "królowa"), dist("król", "porzeczka"))
 
     def test_wu_palmer_synonyms(self):
         """
@@ -99,7 +83,6 @@ class TestWordNetModel(TestCase):
         :return:
         """
         wordnet = WordNetModel()
-        # wordnet.load("slowosiec-graph-2019-11-07-t17-45.bin")
         wordnet.load("slowosiec-graph-hiperonim-connected-by-top-sort.bin")
 
         synonyms1 = wordnet.synonyms("krzesło", dist_type="WuPalmer")
@@ -119,3 +102,10 @@ class TestWordNetModel(TestCase):
         self.assertTrue(type(synonyms1[0]) == str)
         self.assertTrue(type(synonyms2[0]) == str)
         self.assertTrue(type(synonyms3[0]) == str)
+
+    def test__count_root_avg_depth(self):
+        wordnet = WordNetModel()
+        wordnet.load("slowosiec-graph-hiperonim-connected-by-top-sort.bin")
+        depth = wordnet._count_root_depth()
+        print(depth)
+        self.assertGreater(depth, 0)
