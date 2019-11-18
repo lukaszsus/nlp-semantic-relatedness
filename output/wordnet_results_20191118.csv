@@ -1,0 +1,5 @@
+,metric,similarity_func,similarity_cor,relatedness_cor,model_name,missed_words,unique_missed_words
+0,scikit.pearsonr,LeacockChodorow,0.5807076941767733,0.42292050106267276,slowosiec-graph-hiperonim-connected-by-top-sort,23,17
+1,scikit.spearmanr,LeacockChodorow,0.5682003365487287,0.43121965207851803,slowosiec-graph-hiperonim-connected-by-top-sort,23,17
+2,scikit.pearsonr,WuPalmer,0.2446163838234921,0.16767401675742785,slowosiec-graph-hiperonim-connected-by-top-sort,23,17
+3,scikit.spearmanr,WuPalmer,0.2919720856408428,0.1625569491290482,slowosiec-graph-hiperonim-connected-by-top-sort,23,17

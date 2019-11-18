@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import plwn
 import graph_tool.all as graph_tool
+from tqdm import tqdm
 
 # install graph-tool instruction: https://git.skewed.de/count0/graph-tool/wikis/installation-instructions
 # I have installed it by adding two lines to /etc/apt/sources.list:
@@ -23,9 +24,9 @@ class WordNetModel():
     Model using PolishWordNet called 'Slowosiec'.
     """
     def __init__(self):
-        self.g = None
-        self.lemma_to_vertex_id = None
-        self.synset_to_vertex_id = None
+        self.lemma_to_vertex_id = dict()
+        self.synset_to_vertex_id = dict()
+        self.g = graph_tool.Graph(directed=False)
         self.v_root = None
 
         # self.max_depth = None   # used for Leacock and Chodorow measure
@@ -46,11 +47,6 @@ class WordNetModel():
             relation_types = ["hiperonimia"]
 
         wn = plwn.load_default()
-        self.lemma_to_vertex_id = dict()
-        self.synset_to_vertex_id = dict()
-
-        id = 0
-        self.g = graph_tool.Graph(directed=False)
         synset_relation_edges = wn.synset_relation_edges()  # load all synsets relations
 
         for sr_edge in synset_relation_edges:
@@ -74,6 +70,69 @@ class WordNetModel():
         self._count_root_depth()
         # self.depth, (id1, id2) = graph_tool.pseudo_diameter(self.g)
 
+    def create_lexical_graph(self, is_polish=True, relation_types=None):
+        if relation_types is None:
+            relation_types = ["derywacyjność", "synonimia międzyparadygmatyczna ADJ-N",
+                              "synonimia międzyparadygmatyczna dla relacyjnych",
+                              "agens|subiekt", "potencjalność"
+                              "synonimia międzyparadygmatyczna V-N",
+                              "synonimia międzyparadygmatyczna N-ADJ",
+                              "żeńskość", "aspektowość czysta",
+                              "charakteryzowanie", "stan|cecha",
+                              "aspektowość wtórna NDK-DK",
+                              "podobieństwo", "deminutywność",
+                              "miejsce", "stopień najwyższy", "stopień wyższy"]
+        wn = plwn.load_default()
+        lexical_relation_edges = wn.lexical_relation_edges()  # load all lexical relations
+
+        for l_edge in tqdm(lexical_relation_edges):
+            if relation_types is not None and l_edge.relation.name not in relation_types:
+                continue
+            if is_polish and (not l_edge.source.is_polish or not l_edge.target.is_polish):
+                continue
+
+            if l_edge.source.lemma not in self.lemma_to_vertex_id.keys():
+                v_src = self.g.add_vertex()
+                self.lemma_to_vertex_id[l_edge.source.lemma] = int(v_src)
+            else:
+                v_src = self.g.vertex(self.lemma_to_vertex_id[l_edge.source.lemma])
+            if l_edge.target.lemma not in self.lemma_to_vertex_id.keys():
+                v_target = self.g.add_vertex()
+                self.lemma_to_vertex_id[l_edge.target.lemma] = int(v_target)
+            else:
+                v_target = self.g.vertex(self.lemma_to_vertex_id[l_edge.target.lemma])
+
+            self.g.add_edge(v_src, v_target)
+
+        print("Graph created, connecting componenents")
+        self.connect_subgraphs_by_spanning_trees()
+        self._count_root_depth()
+
+    def create_hiperonim_lexical_graph(self):
+        relation_types = ["hiperonimia"]
+
+        wn = plwn.load_default()
+        self.lemma_to_vertex_id = dict()
+        self.synset_to_vertex_id = dict()
+        self.g = graph_tool.Graph(directed=False)
+        synset_relation_edges = wn.synset_relation_edges()  # load all synsets relations
+
+        for sr_edge in synset_relation_edges:
+            if relation_types is not None and sr_edge.relation.name not in relation_types:
+                continue
+            if is_polish and (not sr_edge.source.is_polish or not sr_edge.target.is_polish):
+                continue
+            src_synset_id = sr_edge.source.id
+            target_synset_id = sr_edge.target.id
+
+            self._add_synset_vertices(sr_edge.source, src_synset_id)
+            self._add_synset_vertices(sr_edge.target, target_synset_id)
+
+            # add edge between synsets
+            v1 = self.g.vertex(self.synset_to_vertex_id[src_synset_id])
+            v2 = self.g.vertex(self.synset_to_vertex_id[target_synset_id])
+            self.g.add_edge(v1, v2)
+
     def connect_subgraphs_by_spanning_trees(self):
         subgraphs = {}
         labels = graph_tool.label_components(self.g)[0].a
@@ -89,7 +148,7 @@ class WordNetModel():
         vertices_idx_to_connect = []
 
         print(len(subgraphs.keys()))
-        for l, s in subgraphs.items():
+        for l, s in tqdm(subgraphs.items()):
             # print(l)
             subgraph = graph_tool.GraphView(self.g, vfilt=labels == l,
                                             directed=True)

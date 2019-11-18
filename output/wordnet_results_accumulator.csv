@@ -11,7 +11,3 @@
 9,scikit.spearmanr,LeacockChodorow,0.3960518299174301,0.45771497978876646,slowosiec-graph-hiperonim-lexical-connected-by-top-sort,10,10
 10,scikit.pearsonr,WuPalmer,-0.06827340088272112,0.12402150729851989,slowosiec-graph-hiperonim-lexical-connected-by-top-sort,10,10
 11,scikit.spearmanr,WuPalmer,0.20626589998770056,0.28419867167691326,slowosiec-graph-hiperonim-lexical-connected-by-top-sort,10,10
-12,scikit.pearsonr,LeacockChodorow,0.5809853261407015,0.4593124466159791,slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort,12,11
-13,scikit.spearmanr,LeacockChodorow,0.5775310392468828,0.48512824294531304,slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort,12,11
-14,scikit.pearsonr,WuPalmer,0.06869025605890544,0.08790363045481006,slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort,12,11
-15,scikit.spearmanr,WuPalmer,0.27931125212659036,0.25190907034531096,slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort,12,11

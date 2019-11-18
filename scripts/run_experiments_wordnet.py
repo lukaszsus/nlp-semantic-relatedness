@@ -14,7 +14,10 @@ results_columns = ['metric', 'similarity_func', 'similarity_cor',
                    'unique_missed_words']
 
 models = {
-    "slowosiec-graph-hiperonim-connected-by-top-sort": "slowosiec-graph-hiperonim-connected-by-top-sort.bin"
+    # "slowosiec-graph-hiperonim-connected-by-top-sort": "slowosiec-graph-hiperonim-connected-by-top-sort.bin",
+    # "slowosiec-graph-lexical-connected-by-top-sort": "slowosiec-graph-lexical-connected-by-top-sort.bin",
+    # "slowosiec-graph-hiperonim-lexical-connected-by-top-sort": "slowosiec-graph-hiperonim-lexical-connected-by-top-sort.bin"
+    "slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort": "slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort.bin"
 }
 
 reverted_models = {value: key for key, value in models.items()}

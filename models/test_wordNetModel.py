@@ -109,3 +109,36 @@ class TestWordNetModel(TestCase):
         depth = wordnet._count_root_depth()
         print(depth)
         self.assertGreater(depth, 0)
+
+    def test_create_lexical_graph(self):
+        wordnet = WordNetModel()
+        wordnet.create_lexical_graph()
+        n_vertices = len(list(wordnet.g.vertices()))
+        n_edges = len(list(wordnet.g.edges()))
+        self.assertGreater(n_vertices, 0)
+        self.assertGreater(n_edges, 0)
+
+    def test_save_lexical(self):
+        """
+        Used to create binary version of lexical graph.
+        :return:
+        """
+        wordnet = WordNetModel()
+        wordnet.create_lexical_graph(is_polish=False)
+        file_name = "slowosiec-graph-lexical-connected-by-top-sort"
+        wordnet.save(file_name)
+        file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))
+        self.assertTrue(os.path.isfile(file_path))
+
+    def test_save_mixed_graph(self):
+        """
+        Used to create binary version of mixed type graph.
+        :return:
+        """
+        wordnet = WordNetModel()
+        wordnet.create_graph(is_polish=False)
+        wordnet.create_lexical_graph(is_polish=False)
+        file_name = "slowosiec-graph-hiperonim-lexical-selected-connected-by-top-sort"
+        wordnet.save(file_name)
+        file_path = os.path.join(DATA_PATH, os.path.join("models", file_name + ".bin"))
+        self.assertTrue(os.path.isfile(file_path))
