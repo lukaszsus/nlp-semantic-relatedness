@@ -7,8 +7,8 @@ import graph_tool.all as graph_tool
 ###### graph_tool
 # install graph-tool instruction: https://git.skewed.de/count0/graph-tool/wikis/installation-instructions
 # I have installed it by adding two lines to /etc/apt/sources.list:
-# deb http://downloads.skewed.de/apt/bionic bionic main             (for Ubuntu Bionic!)
-# deb-src http://downloads.skewed.de/apt/bionic bionic main         (for Ubuntu Bionic!)
+# deb http://downloads.skewed.de/apt/bionic bionic universe             (for Ubuntu Bionic!)
+# deb-src http://downloads.skewed.de/apt/bionic bionic universe         (for Ubuntu Bionic!)
 # next, do:
 # sudo apt-key adv --keyserver keys.openpgp.org --recv-key 612DEFB798507F25
 # sudo apt-get update
