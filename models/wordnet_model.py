@@ -3,8 +3,8 @@ import pickle
 import numpy as np
 import plwn
 import graph_tool.all as graph_tool
-from tqdm import tqdm
 
+###### graph_tool
 # install graph-tool instruction: https://git.skewed.de/count0/graph-tool/wikis/installation-instructions
 # I have installed it by adding two lines to /etc/apt/sources.list:
 # deb http://downloads.skewed.de/apt/bionic bionic main             (for Ubuntu Bionic!)
@@ -14,6 +14,10 @@ from tqdm import tqdm
 # sudo apt-get update
 # sudo apt-get install python-graph-tool
 # and it should work
+
+###### plwn
+# http://pypi.clarin-pl.eu/simple/plwn-api/?fbclid=IwAR1Mkt_OrEMj3KvXKjYSWG3CWELb8FZzgufmUTTJYxFoJRG-Pcxm1M_7PaU
+
 from tqdm import tqdm
 
 from settings import DATA_PATH
